@@ -1,4 +1,4 @@
-heat_template_version: 2015-04-30
+heat_template_version: 2013-05-23
 
 description: >
   HOT template to deploy two servers (database and web server) into an existing
@@ -11,15 +11,15 @@ parameters:
   key_name:
     type: string
     description: Name of an existing key pair to use for the template
-    default: dev
+    default: Openstack test
   image:
     type: string
     description: Name of image to use for servers
-    default: ubuntu
+    default: Ubuntu 18.04 LTS Bionic Beaver
   flavor:
     type: string
     description: Flavor to use for servers
-    default: m1.small
+    default: a1-ram2-disk80-perf1
   db_name:
     type: string
     description: WordPress database name
@@ -40,15 +40,15 @@ parameters:
   public_net_id:
     type: string
     description: ID of public network for which floating IP addresses will be allocated
-    default: 7645e3f6-444d-4e4b-ad4f-a9cf49683b2d
+    default: ext-floating1
   private_net_id:
     type: string
     description: ID of private network into which servers get deployed
-    default: e232d0c0-4363-4b39-b88a-949e177f058a
+    default: private-network
   private_subnet_id:
     type: string
     description: ID of private sub network into which servers get deployed
-    default: a0cf224b-1f42-4650-b219-b9320d4ea06f
+    default: private-subnet
 
 resources:
   wp_dbserver:
@@ -57,7 +57,7 @@ resources:
       name: wp_db_server
       flavor: {get_param: flavor}
       image: {get_param: image}
-      key_name: dev
+      key_name: {get_param: key_name}
       networks:
         - port: { get_resource: wp_dbserver_port }
       user_data_format: RAW
@@ -197,6 +197,7 @@ resources:
     properties:
       protocol: HTTP
       lb_algorithm: ROUND_ROBIN
+      listener: {get_resource: listener}
   monitor:
     type: OS::Octavia::HealthMonitor
     properties:
@@ -208,8 +209,15 @@ resources:
   lb:
     type: OS::Octavia::LoadBalancer
     properties:
+      vip_subnet: { get_param: private_subnet_id }
+
+  listener:
+    type: OS::Octavia::Listener
+    properties:
+      loadbalancer: {get_resource: lb}
+      name: myListener
+      protocol: HTTP
       protocol_port: 80
-      pool_id: {get_resource: pool}
 
 outputs:
   scale_up_url:
