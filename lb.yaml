@@ -23,7 +23,7 @@ parameters:
   network:
     type: string
     description: Network used by the server
-    default: db-pnw
+    default: private-network
 
 resources:
   server:
