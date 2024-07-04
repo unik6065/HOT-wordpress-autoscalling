@@ -12,7 +12,7 @@ parameters:
   flavor:
     type: string
     description: flavor used by the servers
-  pool_id:
+  pool:
     type: string
     description: Pool to contact
   user_data:
